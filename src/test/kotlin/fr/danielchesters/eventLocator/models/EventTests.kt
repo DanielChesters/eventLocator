@@ -20,13 +20,9 @@ class EventTests {
     lateinit var eventRepository: EventRepository
 
     @Test
-    fun saveAnEvent() {
+    fun `save an event`() {
         val event = Event(name = "test", date = LocalDateTime.now(), description = "It is a test", latitude = 0.0, longitude = 0.0)
         val savedEvent = eventRepository.save(event)
-
-        val all = eventRepository.findAll()
-
-        assertTrue(all.count() == 1)
 
         val getEvent = eventRepository.findById(savedEvent.id)
 
