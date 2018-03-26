@@ -37,6 +37,10 @@ compileTestKotlin {
     }
 }
 
+test {
+    useJUnitPlatform()
+}
+
 repositories {
     mavenCentral()
 }
@@ -51,6 +55,10 @@ dependencies {
     compile("javax.xml.bind:jaxb-api")
     runtime('org.springframework.boot:spring-boot-devtools')
     runtime('com.h2database:h2')
-    testCompile('org.springframework.boot:spring-boot-starter-test')
+    testCompile('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'junit', module: 'junit'
+    }
     testCompile('org.springframework.restdocs:spring-restdocs-mockmvc')
+    testImplementation('org.junit.jupiter:junit-jupiter-api:5.1.0')
+    testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.1.0')
 }
