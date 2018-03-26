@@ -7,7 +7,6 @@ import javax.persistence.Column
 import javax.persistence.Entity
 import javax.persistence.GeneratedValue
 import javax.persistence.Id
-import javax.validation.Valid
 import javax.validation.constraints.Max
 import javax.validation.constraints.Min
 import javax.validation.constraints.Size
@@ -24,4 +23,4 @@ data class Event(@Id
                  @Max(90) @Min(-90) @Column(nullable = false) var latitude: Double = 0.0,
                  @Column(nullable = false) @Size(min = 1) var name: String = "",
                  @Column(nullable = false) var date: LocalDateTime = LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.ofHours(0)),
-                 @Column(length = 3000) var description: String?)
+                 @Column(length = 3000) var description: String? = null)
