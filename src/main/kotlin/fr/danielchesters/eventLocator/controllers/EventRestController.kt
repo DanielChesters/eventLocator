@@ -4,10 +4,7 @@ import fr.danielchesters.eventLocator.models.Event
 import fr.danielchesters.eventLocator.repositories.EventRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.util.*
 import javax.validation.Valid
 
@@ -22,12 +19,12 @@ class EventRestController {
     lateinit var eventRepository: EventRepository
 
     @RequestMapping(method = [RequestMethod.GET])
-    fun getAll(): MutableIterable<Event> {
-        return eventRepository.findAll()
+    fun getAll(): List<Event> {
+        return eventRepository.findAll().toList()
     }
 
     @RequestMapping(method = [RequestMethod.POST])
-    fun createEvent(@Valid event: Event): ResponseEntity<Any> {
+    fun createEvent(@Valid @RequestBody event: Event): ResponseEntity<Any> {
         val savedEvent = eventRepository.save(event)
         return ResponseEntity.ok(savedEvent)
     }
@@ -39,7 +36,7 @@ class EventRestController {
     }
 
     @RequestMapping(method = [RequestMethod.POST], value = ["/{uuid}"])
-    fun updateEvent(@PathVariable uuid: String, @Valid event: Event): ResponseEntity<Event>? {
+    fun updateEvent(@PathVariable uuid: String, @Valid @RequestBody event: Event): ResponseEntity<Event>? {
         return eventRepository.findById(UUID.fromString(uuid)).map({
             it.date = event.date
             it.description = event.description
