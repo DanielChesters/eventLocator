@@ -47,4 +47,12 @@ class EventRestController {
         }).orElse(ResponseEntity.notFound().build())
     }
 
+    @RequestMapping(method = [RequestMethod.DELETE], value = ["/{uuid}"])
+    fun deleteEvent(@PathVariable uuid: String) {
+        val uuidObject = UUID.fromString(uuid)
+        eventRepository.findById(uuidObject).map({
+            eventRepository.deleteById(uuidObject)
+        })
+    }
+
 }

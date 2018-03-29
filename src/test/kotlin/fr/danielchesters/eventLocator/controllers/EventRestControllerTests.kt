@@ -11,8 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT
 import org.springframework.boot.test.web.client.TestRestTemplate
+import org.springframework.http.HttpStatus
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import java.time.LocalDateTime
+import java.util.*
 
 /**
  * @author Daniel Chesters (on 28/03/2018).
@@ -29,6 +31,8 @@ class EventRestControllerTests {
 
     lateinit var eventsInDB: List<Event>
 
+    val unknownUUID = UUID.fromString("00000000-0000-0000-0000-000000000000")
+
     @BeforeEach
     fun setup() {
         eventRepository.deleteAll()
@@ -40,7 +44,7 @@ class EventRestControllerTests {
                 description = "A second event",
                 latitude = 0.0, longitude = 0.0))
 
-        eventsInDB = events.map{eventRepository.save(it)}.toList()
+        eventsInDB = events.map { eventRepository.save(it) }.toList()
 
 
     }
@@ -64,7 +68,7 @@ class EventRestControllerTests {
     @Test
     fun `get an existing event`() {
         val existingEventInDB = eventsInDB[0]
-        val eventFromDB = restTemplate.getForObject("/events/" + existingEventInDB.id.toString(), Event::class.java)
+        val eventFromDB = restTemplate.getForObject("/events/${existingEventInDB.id}", Event::class.java)
         assertNotNull(eventFromDB)
         assertEquals(existingEventInDB.name, eventFromDB.name)
         assertEquals(existingEventInDB.date, eventFromDB.date)
@@ -90,4 +94,43 @@ class EventRestControllerTests {
             assertEquals(existingEventInDB.longitude, event["longitude"].toString().toDouble(), 0.01)
         }
     }
+
+    @Test
+    fun `update an existing event`() {
+        val existingEventInDB = eventsInDB[0]
+        existingEventInDB.name = "New name"
+        existingEventInDB.description = "New description"
+
+        val responseEntity = restTemplate.postForEntity("/events/${existingEventInDB.id}", existingEventInDB, Event::class.java)
+        assertEquals(HttpStatus.OK, responseEntity.statusCode)
+        val newEvent = responseEntity.body
+        assertNotNull(newEvent)
+        assertEquals(existingEventInDB.name, newEvent?.name)
+        assertEquals(existingEventInDB.date, newEvent?.date)
+        assertEquals(existingEventInDB.description, newEvent?.description)
+        assertEquals(existingEventInDB.latitude, newEvent!!.latitude, 0.01)
+        assertEquals(existingEventInDB.longitude, newEvent.longitude, 0.01)
+    }
+
+    @Test
+    fun `try to get an unknown event`() {
+        val responseEntity = restTemplate.getForEntity("/events/$unknownUUID", Event::class.java)
+        assertEquals(HttpStatus.NOT_FOUND, responseEntity.statusCode)
+    }
+
+    @Test
+    fun `try to update an unknown event`() {
+        val event = Event(name = "Test")
+        val responseEntity = restTemplate.postForEntity("/events/$unknownUUID", event, Event::class.java)
+        assertEquals(HttpStatus.NOT_FOUND, responseEntity.statusCode)
+    }
+
+    @Test
+    fun `delete an existing event`() {
+        val idToDelete = eventsInDB[0].id
+        restTemplate.delete("/events/$idToDelete")
+        val responseEntity = restTemplate.getForEntity("/events/$idToDelete", Event::class.java)
+        assertEquals(HttpStatus.NOT_FOUND, responseEntity.statusCode)
+    }
+
 }
