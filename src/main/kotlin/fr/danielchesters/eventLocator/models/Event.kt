@@ -9,6 +9,7 @@ import javax.persistence.GeneratedValue
 import javax.persistence.Id
 import javax.validation.constraints.Max
 import javax.validation.constraints.Min
+import javax.validation.constraints.NotEmpty
 import javax.validation.constraints.Size
 
 /**
@@ -16,11 +17,22 @@ import javax.validation.constraints.Size
  */
 
 @Entity
-data class Event(@Id
-                 @GeneratedValue
+data class Event(@field:Id
+                 @field:GeneratedValue
                  var id: UUID = UUID.fromString("00000000-0000-0000-0000-000000000000"),
-                 @Max(180) @Min(-180) @Column(nullable = false) var longitude: Double = 0.0,
-                 @Max(90) @Min(-90) @Column(nullable = false) var latitude: Double = 0.0,
-                 @Column(nullable = false) @Size(min = 1) var name: String = "",
-                 @Column(nullable = false) var date: LocalDateTime = LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.ofHours(0)),
-                 @Column(length = 3000) var description: String? = null)
+                 @field:Max(180)
+                 @field:Min(-180)
+                 @field:Column(nullable = false)
+                 var longitude: Double = 0.0,
+                 @field:Max(90)
+                 @field:Min(-90)
+                 @field:Column(nullable = false)
+                 var latitude: Double = 0.0,
+                 @field:Column(nullable = false)
+                 @field:NotEmpty
+                 var name: String = "",
+                 @field:Column(nullable = false)
+                 var date: LocalDateTime = LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.ofHours(0)),
+                 @field:Column(length = 3000)
+                 @field:Size(max = 3000)
+                 var description: String? = null)
