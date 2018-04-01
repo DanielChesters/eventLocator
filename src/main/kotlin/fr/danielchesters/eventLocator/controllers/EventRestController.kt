@@ -3,8 +3,12 @@ package fr.danielchesters.eventLocator.controllers
 import fr.danielchesters.eventLocator.models.Event
 import fr.danielchesters.eventLocator.repositories.EventRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import reactor.core.publisher.Mono
+import reactor.core.publisher.toFlux
+import reactor.core.publisher.toMono
 import java.util.*
 import javax.validation.Valid
 
@@ -19,40 +23,30 @@ class EventRestController {
     lateinit var eventRepository: EventRepository
 
     @RequestMapping(method = [RequestMethod.GET])
-    fun getAll(): List<Event> {
-        return eventRepository.findAll().toList()
-    }
+    fun getAll() = eventRepository.findAll().toFlux()
 
     @RequestMapping(method = [RequestMethod.POST])
-    fun createEvent(@Valid @RequestBody event: Event): ResponseEntity<Any> {
-        val savedEvent = eventRepository.save(event)
-        return ResponseEntity.ok(savedEvent)
-    }
+    fun createEvent(@Valid @RequestBody event: Event) =
+            ResponseEntity(eventRepository.save(event), HttpStatus.CREATED).toMono()
 
     @RequestMapping(method = [RequestMethod.GET], value = ["/{uuid}"])
-    fun getEvent(@PathVariable uuid: String): ResponseEntity<Event>? {
-        return eventRepository.findById(UUID.fromString(uuid)).map({ ResponseEntity.ok(it) })
-                .orElse(ResponseEntity.notFound().build())
-    }
+    fun getEvent(@PathVariable uuid: String) =
+            eventRepository.findById(UUID.fromString(uuid)).map {
+                ResponseEntity.ok(it).toMono()
+            }.orElse(ResponseEntity.notFound().build<Event>().toMono())
 
     @RequestMapping(method = [RequestMethod.POST], value = ["/{uuid}"])
-    fun updateEvent(@PathVariable uuid: String, @Valid @RequestBody event: Event): ResponseEntity<Event>? {
-        return eventRepository.findById(UUID.fromString(uuid)).map({
-            it.date = event.date
-            it.description = event.description
-            it.latitude = event.latitude
-            it.longitude = event.longitude
-            it.name = event.name
-            ResponseEntity.ok(eventRepository.save(it))
-        }).orElse(ResponseEntity.notFound().build())
-    }
+    fun updateEvent(@PathVariable uuid: String, @Valid @RequestBody event: Event) =
+            eventRepository.findById(UUID.fromString(uuid)).map {
+                event.id = it.id
+                ResponseEntity(eventRepository.save(event), HttpStatus.CREATED).toMono()
+            }.orElse(ResponseEntity<Event>(HttpStatus.NOT_FOUND).toMono())
 
     @RequestMapping(method = [RequestMethod.DELETE], value = ["/{uuid}"])
-    fun deleteEvent(@PathVariable uuid: String) {
-        val uuidObject = UUID.fromString(uuid)
-        eventRepository.findById(uuidObject).map({
-            eventRepository.deleteById(uuidObject)
-        })
-    }
+    fun deleteEvent(@PathVariable uuid: String) =
+            eventRepository.findById(UUID.fromString(uuid)).map {
+                eventRepository.delete(it).toMono()
+            }.orElse(Mono.empty())
+
 
 }

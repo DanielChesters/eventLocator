@@ -45,8 +45,6 @@ class EventRestControllerTests {
                 latitude = 0.0, longitude = 0.0))
 
         eventsInDB = events.map { eventRepository.save(it) }.toList()
-
-
     }
 
     @Test
@@ -102,7 +100,7 @@ class EventRestControllerTests {
         existingEventInDB.description = "New description"
 
         val responseEntity = restTemplate.postForEntity("/events/${existingEventInDB.id}", existingEventInDB, Event::class.java)
-        assertEquals(HttpStatus.OK, responseEntity.statusCode)
+        assertEquals(HttpStatus.CREATED, responseEntity.statusCode)
         val newEvent = responseEntity.body
         assertNotNull(newEvent)
         assertEquals(existingEventInDB.name, newEvent?.name)
@@ -181,6 +179,11 @@ class EventRestControllerTests {
         val responseEntity = restTemplate.postForEntity("/events", event, Event::class.java)
         assertEquals(HttpStatus.BAD_REQUEST, responseEntity.statusCode)
         println(responseEntity.body)
+    }
+
+    @Test
+    fun `delete an unknown event`() {
+        restTemplate.delete("/events/$unknownUUID")
     }
 
 }
